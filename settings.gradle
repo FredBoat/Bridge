@@ -1,0 +1,5 @@
+rootProject.name = 'Bridge'
+include 'Almanac'
+include 'Compass'
+include 'Spyglass'
+

@@ -1,0 +1,5 @@
+spring:
+  cloud:
+    config:
+      name: "spyglass"                                     #name of this application, corresponds to cloud config filename
+      uri: "${SPRING_CONFIG_URI:http://localhost:8081}"    #"hardcoded" / env var URI of the config server

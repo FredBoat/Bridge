@@ -1,0 +1,35 @@
+# this is an example file for what could be checked into the cloud config repository for running locally (testing)
+spring:
+  application:
+    name: "compass"
+
+server:
+  port: 8080
+
+eureka:
+  client:
+    region: default
+    registryFetchIntervalSeconds: 30 #should be 30 in prod
+
+zuul:
+  routes:
+    quarterdeck:
+      path: "/quarterdeck/**"
+      sensitive-headers: "Set-Cookie" # excludes headers from forwarding to the service
+    spyglass:
+      path: "/eureka/**"
+      sensitive-headers: "Set-Cookie,Authorization"
+      url: "http://localhost:8082"
+
+hystrix:
+  command:
+    quarterdeck:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 600000
+    spyglass:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 600000

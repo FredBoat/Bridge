@@ -1,0 +1,12 @@
+spring:
+  cloud:
+    config:
+      name: "compass"         #name of this application, corresponds to cloud config file name
+      discovery:
+        service-id: "almanac" #name of cloud config server application
+        enabled: true
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: "${SPRING_DISCOVERY_URI:http://localhost:8082/eureka/}" # URI of discovery server

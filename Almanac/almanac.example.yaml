@@ -1,0 +1,17 @@
+server:
+  port: 8081
+spring:
+  application:
+    name: "almanac" #name of this application. give this IS the cloud config server, it doesn't have a corresponding file in the git repo though
+  cloud:
+    config:
+      server:
+        git:
+          uri: "file://${user.home}/application-config"   # source of the application config files
+
+eureka:
+  client:
+    region: default
+    registryFetchIntervalSeconds: 30 # should be 30 in production
+    serviceUrl:
+      defaultZone: "${SPRING_DISCOVERY_URI:http://localhost:8082/eureka/}" # URI of discovery server

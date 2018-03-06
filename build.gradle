@@ -1,0 +1,105 @@
+import org.gradle.api.tasks.wrapper.Wrapper.DistributionType
+
+buildscript {
+    ext {
+        gradleGitVersion = '1.4.21'
+        springBootVersion = '2.0.0.RELEASE'
+        propDepsVersion = '0.0.9.RELEASE'
+    }
+    repositories {
+        maven { url "https://plugins.gradle.org/m2/" }
+        maven { url 'http://repo.spring.io/plugins-release' }
+        mavenCentral()
+    }
+    dependencies {
+        classpath "gradle.plugin.com.gorylenko.gradle-git-properties:gradle-git-properties:${gradleGitVersion}"
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+        classpath "io.spring.gradle:propdeps-plugin:${propDepsVersion}"
+    }
+}
+
+allprojects {
+    repositories {
+        mavenCentral()
+        jcenter()
+        mavenLocal()
+        maven { url "https://jitpack.io" }
+        maven { url "https://repo.spring.io/snapshot" }
+        maven { url "https://repo.spring.io/milestone" }
+    }
+
+    apply plugin: 'idea'
+    group = 'com.fredboat.bridge'
+}
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'propdeps'
+    apply plugin: 'propdeps-idea'
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'io.spring.dependency-management'
+
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    ext {
+        springCloudVersion = 'Finchley.M8'
+    }
+
+    dependencies {
+        testCompile('org.springframework.boot:spring-boot-starter-test')
+        optional "org.springframework.boot:spring-boot-configuration-processor:$springBootVersion"
+    }
+
+    dependencyManagement {
+        imports {
+            mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+        }
+    }
+
+
+    compileJava.dependsOn 'clean'
+    compileJava.options.encoding = 'UTF-8'
+    compileJava.options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
+
+//required by spring boot configuration processor
+    compileJava.dependsOn(processResources)
+
+    bootRun {
+        //compiling tests during bootRun increases the likelyhood of catching broken tests locally instead of on the CI
+        dependsOn compileTestJava
+
+        //pass in custom jvm args
+        // source: https://stackoverflow.com/a/25079415
+        // example: ./gradlew bootRun -PjvmArgs="--illegal-access=debug -Dwhatever=value"
+        if (project.hasProperty('jvmArgs')) {
+            jvmArgs project.jvmArgs.split('\\s+')
+        }
+    }
+
+    bootJar {
+        archiveName = project.name + '.jar'
+        doLast {
+            //copies the jar into a place where the Dockerfile can find it easily (and users maybe too)
+            copy {
+                from 'build/libs/' + project.name + '.jar'
+                into '.'
+            }
+        }
+    }
+}
+
+version = '1.0'
+
+ext {
+    moduleName = 'Bridge'
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '4.6'
+    distributionType = DistributionType.ALL
+}
